@@ -1,4 +1,4 @@
-from distributions import *
+from coder.distributions import *
 import numpy as np
 
 

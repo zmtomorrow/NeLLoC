@@ -1,6 +1,6 @@
 from model import *
 from decimal import *
-from distributions import *
+from coder.distributions import *
 tensor2decimal= lambda x : Decimal(str(x.cpu().item()))
 
 
