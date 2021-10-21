@@ -26,25 +26,6 @@ class MaskedCNN(nn.Conv2d):
         self.weight.data*=self.mask
         return super(MaskedCNN, self).forward(x)
     
-class PixelCNN_light(nn.Module):
-    def __init__(self, in_kernel = 7,  in_channels=3, channels=100, out_channels=100, device=None):
-        super(PixelCNN_light, self).__init__()
-        self.channels = channels
-        self.layers = {}
-        self.device = device
-        
-
-        self.in_cnn=MaskedCNN('A',in_channels,channels, in_kernel, 1, in_kernel//2, bias=False)
-        self.out_cnn1=nn.Conv2d(channels, channels, 1)
-        self.out_cnn2=nn.Conv2d(channels, out_channels, 1)
-
-        
-    def forward(self, x):
-        x=F.leaky_relu(self.in_cnn(x))
-        x=F.leaky_relu(self.out_cnn1(x))
-        x=self.out_cnn2(x)
-        return x
-
 
 class LocalPixelCNN(nn.Module):
     """
