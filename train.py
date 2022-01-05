@@ -10,43 +10,9 @@ import torch.nn.functional as F
 from torch.optim import lr_scheduler
 from torchvision import datasets, transforms
 from torch.autograd import Variable
+from utils import *
 
-def discretized_mix_logistic_uniform(x, l, alpha=0.0001):
-    x = x.permute(0, 2, 3, 1)
-    l = l.permute(0, 2, 3, 1)
-    xs = [int(y) for y in x.size()]
-    ls = [int(y) for y in l.size()]
-    nr_mix = int(ls[-1] / 10) 
-    logit_probs = l[:, :, :, :nr_mix]
-    l = l[:, :, :, nr_mix:].contiguous().view(xs + [nr_mix * 3])
-    means = l[:, :, :, :, :nr_mix]
-    log_scales = torch.clamp(l[:, :, :, :, nr_mix:2 * nr_mix], min=-7.)
-   
-    coeffs = F.tanh(l[:, :, :, :, 2 * nr_mix:3 * nr_mix])
-    x = x.contiguous()
-    x = x.unsqueeze(-1) + Variable(torch.zeros(xs + [nr_mix]).to(x.device), requires_grad=False)
-    m2 = (means[:, :, :, 1, :] + coeffs[:, :, :, 0, :]
-                * x[:, :, :, 0, :]).view(xs[0], xs[1], xs[2], 1, nr_mix)
 
-    m3 = (means[:, :, :, 2, :] + coeffs[:, :, :, 1, :] * x[:, :, :, 0, :] +
-                coeffs[:, :, :, 2, :] * x[:, :, :, 1, :]).view(xs[0], xs[1], xs[2], 1, nr_mix)
-
-    means = torch.cat((means[:, :, :, 0, :].unsqueeze(3), m2, m3), dim=3)
-    centered_x = x - means
-    inv_stdv = torch.exp(-log_scales)
-    plus_in = inv_stdv * (centered_x + 1. / 255.)
-    cdf_plus = F.sigmoid(plus_in)
-    min_in = inv_stdv * (centered_x - 1. / 255.)
-    cdf_min = F.sigmoid(min_in)
-    cdf_plus=torch.where(x > 0.999, torch.tensor(1.0).to(x.device),cdf_plus)
-    cdf_min=torch.where(x <- 0.999, torch.tensor(0.0).to(x.device),cdf_min)
-    uniform_cdf_min = ((x+1.)/2*255)/256.
-    uniform_cdf_plus = ((x+1.)/2*255+1)/256.
-    pi=torch.softmax(logit_probs,-1).unsqueeze(-2).repeat(1,1,1,3,1)
-    mix_cdf_plus=((1-alpha)*pi*cdf_plus+(alpha/nr_mix)*uniform_cdf_plus).sum(-1)
-    mix_cdf_min=((1-alpha)*pi*cdf_min+(alpha/nr_mix)*uniform_cdf_min).sum(-1)
-    log_probs =torch.log(mix_cdf_plus-mix_cdf_min)
-    return -log_probs.sum()
 
 transform_train = transforms.Compose([
     transforms.RandomHorizontalFlip(p=0.5),
