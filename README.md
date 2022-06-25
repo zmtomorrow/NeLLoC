@@ -14,7 +14,7 @@ For more details about the method, please see paper [On the Out-of-distribution 
 
 
 ## Update:
-We proposed a parallel implmentation of NelloC, see https://arxiv.org/pdf/2201.05213.pdf for details.
+We proposed a parallel implmentation of NelloC, see https://arxiv.org/pdf/2201.05213.pdf for an introduction and https://github.com/zmtomorrow/ParallelNeLLoC for the implementation.
 
 
 
